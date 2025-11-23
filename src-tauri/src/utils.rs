@@ -80,8 +80,8 @@ pub fn extract_project_name(project_path: &Path) -> String {
     }
 
     // Powerlevel10k style fallback
-    let parts: Vec<&str> = project_path
-        .to_string_lossy()
+    let path_str = project_path.to_string_lossy().to_string();
+    let parts: Vec<&str> = path_str
         .split(|c| c == '\\' || c == '/')
         .filter(|s| !s.is_empty())
         .collect();
