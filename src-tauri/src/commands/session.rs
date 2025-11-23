@@ -134,14 +134,11 @@ pub async fn load_project_sessions(
                 // Create unique session ID based on file path
                 let session_id = file_path.clone();
                 
-                let raw_project_name = entry.path()
+                let project_dir = entry.path()
                     .parent()
-                    .and_then(|p| p.file_name())
-                    .and_then(|n| n.to_str())
-                    .unwrap_or("Unknown")
-                    .to_string();
+                    .unwrap_or(entry.path());
 
-                let project_name = extract_project_name(&raw_project_name);
+                let project_name = extract_project_name(project_dir);
 
                 let filtered_messages: Vec<&ClaudeMessage> = if exclude_sidechain.unwrap_or(false) {
                     messages.iter().filter(|m| !m.is_sidechain.unwrap_or(false)).collect()

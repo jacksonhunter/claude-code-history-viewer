@@ -87,7 +87,7 @@ pub fn extract_project_name(project_path: &Path) -> String {
         .collect();
 
     if parts.len() <= 2 {
-        return parts.last().unwrap_or("Unknown").to_string();
+        return parts.last().copied().unwrap_or("Unknown").to_string();
     }
 
     // Abbreviate all but last 2 segments
