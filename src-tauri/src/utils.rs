@@ -9,8 +9,9 @@ pub fn extract_project_name(project_path: &Path) -> String {
         for entry in entries.filter_map(Result::ok) {
             if entry.path().extension().and_then(|s| s.to_str()) == Some("jsonl") {
                 if let Ok(content) = fs::read_to_string(entry.path()) {
-                    if let Some(first_line) = content.lines().next() {
-                        if let Ok(json) = serde_json::from_str::<JsonValue>(first_line) {
+                    // Check first few lines for cwd field
+                    for line in content.lines().take(10) {
+                        if let Ok(json) = serde_json::from_str::<JsonValue>(line) {
                             if let Some(cwd) = json.get("cwd").and_then(|v| v.as_str()) {
                                 let real_path = Path::new(cwd);
                                 return find_project_name_in_path(real_path);
@@ -18,7 +19,6 @@ pub fn extract_project_name(project_path: &Path) -> String {
                         }
                     }
                 }
-                break; // Only check first JSONL file
             }
         }
     }
