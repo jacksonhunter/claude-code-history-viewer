@@ -4,6 +4,30 @@ use serde_json::Value as JsonValue;
 use toml::Value as TomlValue;
 
 pub fn extract_project_name(project_path: &Path) -> String {
+    // First, try to get the real project path from cwd in JSONL files
+    if let Ok(entries) = fs::read_dir(project_path) {
+        for entry in entries.filter_map(Result::ok) {
+            if entry.path().extension().and_then(|s| s.to_str()) == Some("jsonl") {
+                if let Ok(content) = fs::read_to_string(entry.path()) {
+                    if let Some(first_line) = content.lines().next() {
+                        if let Ok(json) = serde_json::from_str::<JsonValue>(first_line) {
+                            if let Some(cwd) = json.get("cwd").and_then(|v| v.as_str()) {
+                                let real_path = Path::new(cwd);
+                                return find_project_name_in_path(real_path);
+                            }
+                        }
+                    }
+                }
+                break; // Only check first JSONL file
+            }
+        }
+    }
+
+    // Fallback if no cwd found
+    powerlevel10k_abbreviate(project_path)
+}
+
+fn find_project_name_in_path(project_path: &Path) -> String {
     let mut current_path = project_path.to_path_buf();
 
     for _ in 0..4 {
@@ -79,7 +103,11 @@ pub fn extract_project_name(project_path: &Path) -> String {
         }
     }
 
-    // Powerlevel10k style fallback
+    // Fallback if no project files found
+    powerlevel10k_abbreviate(project_path)
+}
+
+fn powerlevel10k_abbreviate(project_path: &Path) -> String {
     let path_str = project_path.to_string_lossy().to_string();
     let parts: Vec<&str> = path_str
         .split(|c| c == '\\' || c == '/')
