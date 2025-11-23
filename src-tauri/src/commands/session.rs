@@ -18,6 +18,14 @@ pub async fn load_project_sessions(
         .into_iter()
         .filter_map(|e| e.ok())
         .filter(|e| e.path().extension().and_then(|s| s.to_str()) == Some("jsonl"))
+        .filter(|e| {
+            // Exclude agent sidechain files (agent-*.jsonl)
+            !e.path()
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(|n| n.starts_with("agent-"))
+                .unwrap_or(false)
+        })
     {
         let file_path = entry.path().to_string_lossy().to_string();
         
@@ -266,10 +274,10 @@ pub async fn load_project_sessions(
         }
     }
 
-    let elapsed = start_time.elapsed();
+    let _elapsed = start_time.elapsed();
     #[cfg(debug_assertions)]
-    println!("📊 load_project_sessions 성능: {}개 세션, {}ms 소요", 
-             sessions.len(), elapsed.as_millis());
+    println!("📊 load_project_sessions 성능: {}개 세션, {}ms 소요",
+             sessions.len(), _elapsed.as_millis());
 
     Ok(sessions)
 }
@@ -512,9 +520,9 @@ pub async fn load_session_messages_paginated(
     let has_more = start_idx > 0;
     let next_offset = offset + messages.len();
     
-    let elapsed = start_time.elapsed();
+    let _elapsed = start_time.elapsed();
     #[cfg(debug_assertions)]
-    eprintln!("📊 load_session_messages_paginated 성능: {}개 메시지, {}ms 소요", messages.len(), elapsed.as_millis());
+    eprintln!("📊 load_session_messages_paginated 성능: {}개 메시지, {}ms 소요", messages.len(), _elapsed.as_millis());
     #[cfg(debug_assertions)]
     eprintln!("Result: {} messages returned, has_more={}, next_offset={}", messages.len(), has_more, next_offset);
     
