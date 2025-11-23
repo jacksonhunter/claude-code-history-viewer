@@ -64,9 +64,9 @@ pub async fn scan_projects(claude_path: String) -> Result<Vec<ClaudeProject>, St
         .filter_map(|e| e.ok())
         .filter(|e| e.file_type().is_dir())
     {
-        let raw_project_name = entry.file_name().to_string_lossy().to_string();
-        let project_path = entry.path().to_string_lossy().to_string();
-        let project_name = extract_project_name(&raw_project_name);
+        let project_path_buf = entry.path();
+        let project_path = project_path_buf.to_string_lossy().to_string();
+        let project_name = extract_project_name(project_path_buf);
 
         let mut session_count = 0;
         let mut message_count = 0;
